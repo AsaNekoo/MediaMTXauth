@@ -2,11 +2,21 @@ package main
 
 import (
 	"MediaMTXAuth/internal/api"
+	"MediaMTXAuth/internal/storage"
 	"log"
 	"net/http"
 )
 
 func main() {
+	//DB
+	dbPath := "auth.db"
+	store, err := storage.InitDB(dbPath)
+	if err != nil {
+		log.Fatalf("failed to open DB: %v", err)
+	}
+	defer store.Close()
+
+	//web
 	mux := http.NewServeMux()
 	mux.HandleFunc("/auth", api.AuthHandler)
 	mux.HandleFunc("/login", api.Login)

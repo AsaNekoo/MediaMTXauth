@@ -35,14 +35,14 @@ func HashPassword(password string) (string, error) {
 	return result, nil
 }
 
-func VerifyPassword(password, encodedHash string) (bool, error) {
+func VerifyPassword(password, stored string) (bool, error) {
 
 	var err error
 	var memory, iterations uint32
 	var parallelism uint8
 	// $argon2id$v=19$m=19456,t=2,p=1$salt$hash
 
-	parts := strings.Split(encodedHash, "$")
+	parts := strings.Split(stored, "$")
 	if len(parts) != 6 {
 		return false, fmt.Errorf("invalid hash format: expected 6 parts, got %d", len(parts))
 	}

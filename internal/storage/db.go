@@ -1,7 +1,7 @@
 package storage
 
 import (
-	"MediaMTXAuth/internal/api"
+	"MediaMTXAuth/internal/passwords"
 	"encoding/binary"
 	"encoding/json"
 	"errors"
@@ -33,7 +33,7 @@ const (
 var (
 	ErrUsername = errors.New("username must be at least 3 characters long")
 
-	ErrPassword = errors.New("password must be at least 8 characters long")
+	ErrPassword = errors.New("passwords must be at least 8 characters long")
 )
 
 func itob(v int) []byte {
@@ -89,7 +89,7 @@ func (s *Storage) CreateUser(u *User, password string) error {
 		return ErrPassword
 	}
 
-	hash, err := api.HashPassword(password)
+	hash, err := passwords.Hash(password)
 	if err != nil {
 		return err
 	}
@@ -185,5 +185,5 @@ func (s *Storage) VerifyUser(username, password string) (bool, error) {
 		return false, err
 	}
 
-	return api.VerifyPassword(password, storedHash)
+	return passwords.Verify(password, storedHash)
 }

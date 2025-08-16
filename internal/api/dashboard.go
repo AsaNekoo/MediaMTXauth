@@ -1,6 +1,7 @@
 package api
 
 import (
+	"MediaMTXAuth/internal/passwords"
 	"fmt"
 	"net/http"
 )
@@ -16,7 +17,7 @@ func Login(w http.ResponseWriter, r *http.Request) {
 		}
 		login := r.FormValue("login")
 		password := r.FormValue("password")
-		hashed, err := HashPassword(password)
+		hashed, err := passwords.Hash(password)
 		fmt.Println(login, password, hashed, err)
 	}
 }

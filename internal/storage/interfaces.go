@@ -1,0 +1,15 @@
+package storage
+
+import (
+	"MediaMTXAuth/internal"
+	"io"
+)
+
+type Storage interface {
+	io.Closer
+	Init() error
+	SetUser(internal.User) error
+	GetUser(string) (*internal.User, error)
+	SetNamespace(internal.Namespace) error
+	GetNamespace(string) (*internal.Namespace, error)
+}

@@ -2,9 +2,10 @@ package storage
 
 import (
 	"MediaMTXAuth/internal"
-	"github.com/google/go-cmp/cmp"
 	"testing"
 	"time"
+
+	"github.com/google/go-cmp/cmp"
 )
 
 func XTestStorage(t *testing.T, s Storage) {
@@ -57,6 +58,20 @@ func XTestStorage(t *testing.T, s Storage) {
 			t.Logf("got: %v", *storedUser)
 			return
 		}
+
+		t.Run("delete", func(t *testing.T) {
+			s.DeleteUser(u.Name)
+
+			storedUser, err := s.GetUser(u.Name)
+			if err != nil {
+				t.Errorf("Failed to get user: %v", err)
+				return
+			}
+			if storedUser != nil {
+				t.Errorf("Stored user isnt nil")
+				return
+			}
+		})
 	})
 
 	t.Run("namespaces", func(t *testing.T) {
@@ -64,11 +79,10 @@ func XTestStorage(t *testing.T, s Storage) {
 			Name: "test",
 			Sessions: []internal.NamespaceSession{
 				{
-					Key:           "random key",
-					Name:          "test",
-					User:          "test_user",
-					Created:       time.Unix(1234567890, 0),
-					LastPublished: time.Unix(1234567899, 0),
+					Key:     "random key",
+					Name:    "test",
+					User:    "test_user",
+					Created: time.Unix(1234567890, 0),
 				},
 			},
 		}
@@ -98,5 +112,19 @@ func XTestStorage(t *testing.T, s Storage) {
 			t.Logf("got: %v", *storedNamespace)
 			return
 		}
+
+		t.Run("delete", func(t *testing.T) {
+			s.DeleteNamespace(n.Name)
+
+			storedNamespace, err := s.GetNamespace(n.Name)
+			if err != nil {
+				t.Errorf("Failed to get user: %v", err)
+				return
+			}
+			if storedNamespace != nil {
+				t.Errorf("Stored namespace isnt nil")
+				return
+			}
+		})
 	})
 }

@@ -4,8 +4,9 @@ import (
 	"MediaMTXAuth/internal"
 	"MediaMTXAuth/internal/storage"
 	"encoding/json"
-	bolt "go.etcd.io/bbolt"
 	"time"
+
+	bolt "go.etcd.io/bbolt"
 )
 
 var usersBucket = []byte("users")
@@ -49,6 +50,9 @@ func (s *boltStorage) SetUser(u internal.User) error {
 func (s *boltStorage) GetUser(name string) (*internal.User, error) {
 	return get[internal.User](s.DB, usersBucket, name)
 }
+func (s *boltStorage) DeleteUser(name string) error {
+	return remove[internal.User](s.DB, usersBucket, name)
+}
 
 func (s *boltStorage) SetNamespace(u internal.Namespace) error {
 	return set(s.DB, namespacesBucket, u)
@@ -56,6 +60,10 @@ func (s *boltStorage) SetNamespace(u internal.Namespace) error {
 
 func (s *boltStorage) GetNamespace(name string) (*internal.Namespace, error) {
 	return get[internal.Namespace](s.DB, namespacesBucket, name)
+}
+
+func (s *boltStorage) DeleteNamespace(name string) error {
+	return remove[internal.Namespace](s.DB, namespacesBucket, name)
 }
 
 func set[T internal.WithID](db *bolt.DB, bucket []byte, v T) error {
@@ -89,5 +97,12 @@ func get[T any](db *bolt.DB, bucket []byte, name string) (u *T, err error) {
 		return nil
 	})
 
+	return
+}
+
+func remove[T any](db *bolt.DB, bucket []byte, name string) (err error) {
+	err = db.Update(func(tx *bolt.Tx) error {
+		return tx.Bucket(bucket).Delete([]byte(name))
+	})
 	return
 }

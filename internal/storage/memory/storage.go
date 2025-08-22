@@ -68,3 +68,17 @@ func (s *Storage) GetNamespace(name string) (*internal.Namespace, error) {
 	}
 	return nil, nil
 }
+
+func (s *Storage) DeleteUser(name string) error {
+	if s != nil && s.Users != nil {
+		delete(s.Users, name)
+	}
+	return nil
+}
+
+func (s *Storage) DeleteNamespace(name string) error {
+	if s != nil && s.Namespaces != nil {
+		delete(s.Namespaces, name)
+	}
+	return nil
+}

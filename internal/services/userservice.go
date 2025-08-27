@@ -11,30 +11,32 @@ import (
 	"time"
 )
 
+const DefaultAdminUsername = "admin"
+const DefaultAdminPassword = "admin"
+
 var (
-	ErrUsername  = errors.New("username must be at least 3 characters long")
-	ErrPassword  = errors.New("password must be at least 8 characters long")
-	ErrIncorrect = errors.New("incorrect")
+	ErrShortUsername = errors.New("username must be at least 3 characters long")
+	ErrShortPassword = errors.New("password must be at least 8 characters long")
 )
 
 type userService struct {
 	storage storage.Storage
 }
 
-func NewUserService() *userService {
-	return &userService{}
+func NewUserService(storage storage.Storage) internal.UserService {
+	return &userService{storage}
 }
 
 func validateUsername(username string) error {
 	if len(username) < 3 || len(username) > 32 {
-		return ErrUsername
+		return ErrShortUsername
 	}
 	return nil
 }
 
 func validatePassword(password string) error {
 	if len(password) < 8 {
-		return ErrPassword
+		return ErrShortPassword
 	}
 	return nil
 }
@@ -48,11 +50,25 @@ func (s *userService) Create(username, password string, isAdmin bool) (*internal
 		return nil, err
 	}
 
+	return s.create(username, password, isAdmin)
+}
+
+func (s *userService) create(username, password string, isAdmin bool) (*internal.User, error) {
 	existingUser, err := s.storage.GetUser(username)
-	if err == nil && existingUser != nil {
+
+	if err != nil {
+		return nil, err
+	}
+
+	if existingUser != nil {
+		return nil, internal.ErrUserAlreadyExists
 	}
 
 	hash, err := passwords.Hash(password)
+
+	if err != nil {
+		return nil, err
+	}
 
 	userPassword := internal.UserPassword{
 		Hash:        hash,
@@ -74,64 +90,36 @@ func (s *userService) Create(username, password string, isAdmin bool) (*internal
 }
 
 func (s *userService) CreateDefaultAdminUser() (string, error) {
+	_, err := s.create(DefaultAdminUsername, DefaultAdminPassword, true)
 
-	const (
-		password string = "admin"
-		username string = "admin"
-		isAdmin  bool   = true
-	)
-
-	existingUser, err := s.storage.GetUser(username)
-	if err == nil && existingUser != nil {
+	if err == nil {
+		return DefaultAdminPassword, nil
 	}
 
-	hash, err := passwords.Hash(password)
-
-	userPassword := internal.UserPassword{
-		Hash:        hash,
-		IsGenerated: true,
+	if errors.Is(err, internal.ErrUserAlreadyExists) {
+		return "", nil
 	}
 
-	user := internal.User{
-		Name:     username,
-		IsAdmin:  isAdmin,
-		Password: userPassword,
-	}
-
-	err = s.storage.SetUser(user)
-	if err != nil {
-		return "", err
-	}
-
-	result := password + username
-	return result, nil
+	return "", err
 }
 
 func (s *userService) Get(username string) (*internal.User, error) {
-	var user *internal.User
-	var err error
-
-	user, err = s.storage.GetUser(username)
-	if err != nil {
-		return nil, err
-	}
-	return user, nil
+	return s.storage.GetUser(username)
 }
 
 func (s *userService) Delete(username string) error {
-	var err error
-
-	err = s.storage.DeleteUser(username)
-	if err != nil {
-		return err
-	}
-	return nil
+	return s.storage.DeleteUser(username)
 }
 
 func (s *userService) ChangePassword(username, password string) error {
 	user, err := s.storage.GetUser(username)
+
 	if err != nil {
 		return err
+	}
+
+	if user == nil {
+		return internal.ErrUserNotFound
 	}
 
 	hash, err := passwords.Hash(password)
@@ -151,6 +139,10 @@ func (s *userService) ResetPassword(username string) (string, error) {
 	user, err := s.storage.GetUser(username)
 	if err != nil {
 		return "", err
+	}
+
+	if user == nil {
+		return "", internal.ErrUserNotFound
 	}
 
 	generated := rand.Text()
@@ -178,6 +170,10 @@ func (s *userService) ResetStreamKey(username string) (string, error) {
 		return "", err
 	}
 
+	if user == nil {
+		return "", internal.ErrUserNotFound
+	}
+
 	generated := rand.Text()
 	user.StreamKey = generated
 
@@ -191,13 +187,22 @@ func (s *userService) ResetStreamKey(username string) (string, error) {
 func (s *userService) Login(username, password string) (*internal.User, error) {
 	user, err := s.storage.GetUser(username)
 
-	storedHash := user.Password.Hash
-	p, err := passwords.Verify(password, storedHash)
-	if p != true {
-		return nil, ErrIncorrect
-	}
 	if err != nil {
 		return nil, err
+	}
+
+	if user == nil {
+		return nil, internal.ErrUserNotFound
+	}
+
+	storedHash := user.Password.Hash
+	p, err := passwords.Verify(password, storedHash)
+	if err != nil {
+		return nil, err
+	}
+
+	if !p {
+		return nil, internal.ErrWrongPassword
 	}
 
 	randomID, _ := rand.Int(rand.Reader, big.NewInt(math.MaxInt64))
@@ -214,13 +219,20 @@ func (s *userService) Login(username, password string) (*internal.User, error) {
 	return user, nil
 }
 
-func (s *userService) Logout(username string) error {
+func (s *userService) Logout(username string) (*internal.User, error) {
 	user, err := s.storage.GetUser(username)
-	if err != nil {
-		return err
+
+	if err != nil || user == nil {
+		return nil, err
 	}
 
 	user.Session = internal.UserSession{}
 
-	return s.storage.SetUser(*user)
+	err = s.storage.SetUser(*user)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
 }

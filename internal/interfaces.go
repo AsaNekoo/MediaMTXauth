@@ -1,6 +1,13 @@
 package internal
 
-import "time"
+import (
+	"errors"
+	"time"
+)
+
+var ErrUserNotFound = errors.New("user not found")
+var ErrUserAlreadyExists = errors.New("user already exists")
+var ErrWrongPassword = errors.New("wrong password")
 
 type UserPassword struct {
 	Hash        string

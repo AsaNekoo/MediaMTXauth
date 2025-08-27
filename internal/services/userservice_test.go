@@ -1,6 +1,7 @@
 package services
 
 import (
+	"MediaMTXAuth/internal"
 	"MediaMTXAuth/internal/storage/memory"
 	"testing"
 
@@ -16,10 +17,11 @@ func TestUserService(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	userService := &userService{storage: storage}
+	userService := NewUserService(storage)
 
 	t.Run("create user", func(t *testing.T) {
 		t.Run("valid user creation", func(t *testing.T) {
+			t.Cleanup(storage.Clear)
 			user, err := userService.Create(username, password, false)
 			if err != nil {
 				t.Errorf("Failed to create user: %v", err)
@@ -33,21 +35,27 @@ func TestUserService(t *testing.T) {
 		})
 
 		t.Run("validation errors", func(t *testing.T) {
+			t.Cleanup(storage.Clear)
 			_, err := userService.Create("ab", password, false)
-			if err != ErrUsername {
-				t.Errorf("Expected ErrUsername, got %v", err)
+			if err != ErrShortUsername {
+				t.Errorf("Expected ErrShortUsername, got %v", err)
 			}
 
 			_, err = userService.Create(username, "short", false)
-			if err != ErrPassword {
-				t.Errorf("Expected ErrPassword, got %v", err)
+			if err != ErrShortPassword {
+				t.Errorf("Expected ErrShortPassword, got %v", err)
 			}
 		})
 	})
 
 	t.Run("get user", func(t *testing.T) {
-
+		t.Cleanup(storage.Clear)
 		createdUser, err := userService.Create(username, password, true)
+
+		if err != nil {
+			t.Errorf("Failed to create user: %v", err)
+			return
+		}
 
 		retrievedUser, err := userService.Get(username)
 		if err != nil {
@@ -63,7 +71,7 @@ func TestUserService(t *testing.T) {
 	})
 
 	t.Run("delete user", func(t *testing.T) {
-
+		t.Cleanup(storage.Clear)
 		_, err := userService.Create(username, password, false)
 
 		err = userService.Delete(username)
@@ -79,6 +87,7 @@ func TestUserService(t *testing.T) {
 	})
 
 	t.Run("change password", func(t *testing.T) {
+		t.Cleanup(storage.Clear)
 		oldPassword := "oldpassword"
 		newPassword := "newpassword"
 
@@ -100,8 +109,13 @@ func TestUserService(t *testing.T) {
 	})
 
 	t.Run("reset password", func(t *testing.T) {
-
+		t.Cleanup(storage.Clear)
 		user, err := userService.Create(username, password, false)
+
+		if err != nil {
+			t.Errorf("Failed to create user: %v", err)
+			return
+		}
 
 		originalHash := user.Password.Hash
 
@@ -123,8 +137,13 @@ func TestUserService(t *testing.T) {
 	})
 
 	t.Run("reset stream key", func(t *testing.T) {
-
+		t.Cleanup(storage.Clear)
 		user, err := userService.Create(username, password, false)
+
+		if err != nil {
+			t.Errorf("Failed to create user: %v", err)
+			return
+		}
 
 		originalStreamKey := user.StreamKey
 
@@ -146,7 +165,7 @@ func TestUserService(t *testing.T) {
 	})
 
 	t.Run("login and logout", func(t *testing.T) {
-
+		t.Cleanup(storage.Clear)
 		_, _ = userService.Create(username, password, false)
 
 		t.Run("successful login", func(t *testing.T) {
@@ -163,8 +182,8 @@ func TestUserService(t *testing.T) {
 
 		t.Run("failed login", func(t *testing.T) {
 			_, err := userService.Login(username, "wrongpassword")
-			if err != ErrIncorrect {
-				t.Errorf("Expected ErrIncorrect, got %v", err)
+			if err != internal.ErrWrongPassword {
+				t.Errorf("Expected ErrWrongPassword, got %v", err)
 			}
 		})
 
@@ -172,7 +191,13 @@ func TestUserService(t *testing.T) {
 
 			_, err := userService.Login(username, password)
 
-			err = userService.Logout(username)
+			if err != nil {
+				t.Errorf("Failed to login: %v", err)
+				return
+			}
+
+			_, err = userService.Logout(username)
+
 			if err != nil {
 				t.Errorf("Failed to logout: %v", err)
 				return
@@ -191,13 +216,14 @@ func TestUserService(t *testing.T) {
 	})
 
 	t.Run("create default admin user", func(t *testing.T) {
+		t.Cleanup(storage.Clear)
 		result, err := userService.CreateDefaultAdminUser()
 		if err != nil {
 			t.Errorf("Failed to create: %v", err)
 			return
 		}
 
-		expectedResult := "adminadmin"
+		expectedResult := "admin"
 		if result != expectedResult {
 			t.Errorf("Expected result %s, got %s", expectedResult, result)
 		}

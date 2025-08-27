@@ -82,3 +82,8 @@ func (s *Storage) DeleteNamespace(name string) error {
 	}
 	return nil
 }
+
+func (s *Storage) Clear() {
+	clear(s.Users)
+	clear(s.Namespaces)
+}

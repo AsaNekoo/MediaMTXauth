@@ -2,18 +2,27 @@ package main
 
 import (
 	"MediaMTXAuth/internal/api"
-	"MediaMTXAuth/internal/storage"
+	"MediaMTXAuth/internal/storage/bolt"
+	"flag"
 	"log"
 	"net/http"
 )
 
+var dbPath string
+
+func init() {
+	flag.StringVar(&dbPath, "db", "auth.db", "path to database file")
+}
+
 func main() {
-	//DB
-	dbPath := "auth.db"
-	store, err := storage.InitDB(dbPath)
+	flag.Parse()
+
+	store, err := bolt.New(dbPath)
+
 	if err != nil {
 		log.Fatalf("failed to open DB: %v", err)
 	}
+
 	defer store.Close()
 
 	//web

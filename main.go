@@ -2,6 +2,7 @@ package main
 
 import (
 	"MediaMTXAuth/internal/api"
+	"MediaMTXAuth/internal/services"
 	"MediaMTXAuth/internal/storage/bolt"
 	"flag"
 	"log"
@@ -21,6 +22,24 @@ func main() {
 
 	if err != nil {
 		log.Fatalf("failed to open DB: %v", err)
+	}
+
+	err = store.Init()
+
+	if err != nil {
+		log.Fatalf("failed to init DB: %v", err)
+	}
+
+	userService := services.NewUserService(store)
+
+	adminPassword, err := userService.CreateDefaultAdminUser()
+
+	if err != nil {
+		log.Fatalf("failed to create default admin user: %v", err)
+	}
+
+	if adminPassword != "" {
+		log.Println("admin password:", adminPassword)
 	}
 
 	defer store.Close()

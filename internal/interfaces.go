@@ -5,9 +5,6 @@ import (
 	"time"
 )
 
-var ErrUserNotFound = errors.New("user not found")
-var ErrUserAlreadyExists = errors.New("user already exists")
-var ErrWrongPassword = errors.New("wrong password")
 
 type UserPassword struct {
 	Hash        string
@@ -77,3 +74,11 @@ type NamespaceService interface {
 	AddSession(namespace, sessionName, user string) (*NamespaceSession, error)
 	RemoveSession(namespace, sessionKey string) error
 }
+var (
+	ErrUserNotFound           = errors.New("user not found")
+	ErrUserAlreadyExists      = errors.New("user already exists")
+	ErrWrongPassword          = errors.New("wrong password")
+	ErrNamespaceNotFound      = errors.New("namespace not found")
+	ErrNamespaceAlreadyExists = errors.New("namespace already exists")
+	ErrSessionNotFound        = errors.New("session not found")
+)

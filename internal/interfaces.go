@@ -5,7 +5,6 @@ import (
 	"time"
 )
 
-
 type UserPassword struct {
 	Hash        string
 	IsGenerated bool
@@ -64,6 +63,7 @@ type UserService interface {
 	ResetStreamKey(username string) (string, error)
 	Login(username, password string) (*User, error)
 	Logout(username string) (*User, error)
+	VerifySession(username, sessionID string) (bool, error)
 }
 
 type NamespaceService interface {
@@ -74,6 +74,7 @@ type NamespaceService interface {
 	AddSession(namespace, sessionName, user string) (*NamespaceSession, error)
 	RemoveSession(namespace, sessionKey string) error
 }
+
 var (
 	ErrUserNotFound           = errors.New("user not found")
 	ErrUserAlreadyExists      = errors.New("user already exists")

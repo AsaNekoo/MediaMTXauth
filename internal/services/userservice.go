@@ -5,7 +5,9 @@ import (
 	"MediaMTXAuth/internal/passwords"
 	"MediaMTXAuth/internal/storage"
 	"crypto/rand"
+	"crypto/subtle"
 	"errors"
+	"fmt"
 	"math"
 	"math/big"
 	"time"
@@ -235,4 +237,24 @@ func (s *userService) Logout(username string) (*internal.User, error) {
 	}
 
 	return user, nil
+}
+
+func (s *userService) VerifySession(username, sessionkey string) (bool, error) {
+	user, err := s.storage.GetUser(username)
+	if err != nil {
+		return false, err
+	}
+	if user == nil {
+		return false, internal.ErrUserNotFound
+	}
+
+	if user.Session.ID == 0 || user.Session.Expiration.Before(time.Now()) {
+		return false, nil
+	}
+
+	idStr := fmt.Sprintf("%d", user.Session.ID)
+	if subtle.ConstantTimeCompare([]byte(idStr), []byte(sessionkey)) == 1 {
+		return true, nil
+	}
+	return false, nil
 }

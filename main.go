@@ -1,9 +1,9 @@
 package main
 
 import (
-	"MediaMTXAuth/internal/api"
 	"MediaMTXAuth/internal/services"
 	"MediaMTXAuth/internal/storage/bolt"
+	"MediaMTXAuth/internal/views"
 	"flag"
 	"log"
 	"net/http"
@@ -44,18 +44,14 @@ func main() {
 
 	defer store.Close()
 
-	//web
+	loginView := views.NewLogin(userService)
+	adminView := views.NewAdmin(userService)
+
+	// Setup routes
 	mux := http.NewServeMux()
-	mux.HandleFunc("/auth", api.AuthHandler)
-	mux.HandleFunc("/login", api.Login)
+	mux.Handle("/login", loginView)
+	mux.Handle("/admin", adminView)
 
-	server := &http.Server{
-		Addr:    ":8080", // MediaMTX will call http://host:8080/auth
-		Handler: mux,
-	}
-
-	log.Println("Auth server listening on :8080")
-	if err := server.ListenAndServe(); err != nil {
-		log.Fatal(err)
-	}
+	log.Println("Server starting on :8080")
+	log.Fatal(http.ListenAndServe(":8080", mux))
 }

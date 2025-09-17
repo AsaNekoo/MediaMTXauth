@@ -35,8 +35,8 @@ func (s *namespaceService) Create(namespaceName string) (*internal.Namespace, er
 }
 
 func (s *namespaceService) Get(namespaceName string) (*internal.Namespace, error) {
-	namespace, err := s.storage.GetNamespace(namespaceName)
-	if err != nil {
+	namespace, _ := s.storage.GetNamespace(namespaceName)
+	if namespace == nil {
 		return nil, internal.ErrNamespaceNotFound
 	}
 	return namespace, nil
@@ -47,8 +47,8 @@ func (s *namespaceService) Delete(namespaceName string) error {
 }
 
 func (s *namespaceService) AddSession(namespaceName, sessionName, user string) (*internal.NamespaceSession, error) {
-	namespace, err := s.storage.GetNamespace(namespaceName)
-	if err != nil {
+	namespace, _ := s.storage.GetNamespace(namespaceName)
+	if namespace == nil {
 		return nil, internal.ErrNamespaceNotFound
 	}
 
@@ -71,10 +71,7 @@ func (s *namespaceService) AddSession(namespaceName, sessionName, user string) (
 }
 
 func (s *namespaceService) RemoveSession(namespaceName, sessionKey string) error {
-	namespace, err := s.storage.GetNamespace(namespaceName)
-	if err != nil {
-		return err
-	}
+	namespace, _ := s.storage.GetNamespace(namespaceName)
 	if namespace == nil {
 		return internal.ErrNamespaceNotFound
 	}

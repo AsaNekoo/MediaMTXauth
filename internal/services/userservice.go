@@ -99,7 +99,7 @@ func (s *userService) CreateDefaultAdminUser() (string, error) {
 	}
 
 	if errors.Is(err, internal.ErrUserAlreadyExists) {
-		return "", nil
+		return "", err
 	}
 
 	return "", err
@@ -114,11 +114,7 @@ func (s *userService) Delete(username string) error {
 }
 
 func (s *userService) ChangePassword(username, password string) error {
-	user, err := s.storage.GetUser(username)
-
-	if err != nil {
-		return err
-	}
+	user, _ := s.storage.GetUser(username)
 
 	if user == nil {
 		return internal.ErrUserNotFound
@@ -138,10 +134,7 @@ func (s *userService) ChangePassword(username, password string) error {
 }
 
 func (s *userService) ResetPassword(username string) (string, error) {
-	user, err := s.storage.GetUser(username)
-	if err != nil {
-		return "", err
-	}
+	user, _ := s.storage.GetUser(username)
 
 	if user == nil {
 		return "", internal.ErrUserNotFound
@@ -167,10 +160,7 @@ func (s *userService) ResetPassword(username string) (string, error) {
 }
 
 func (s *userService) ResetStreamKey(username string) (string, error) {
-	user, err := s.storage.GetUser(username)
-	if err != nil {
-		return "", err
-	}
+	user, _ := s.storage.GetUser(username)
 
 	if user == nil {
 		return "", internal.ErrUserNotFound
@@ -179,7 +169,7 @@ func (s *userService) ResetStreamKey(username string) (string, error) {
 	generated := rand.Text()
 	user.StreamKey = generated
 
-	err = s.storage.SetUser(*user)
+	err := s.storage.SetUser(*user)
 	if err != nil {
 		return "", err
 	}
@@ -187,11 +177,7 @@ func (s *userService) ResetStreamKey(username string) (string, error) {
 }
 
 func (s *userService) Login(username, password string) (*internal.User, error) {
-	user, err := s.storage.GetUser(username)
-
-	if err != nil {
-		return nil, err
-	}
+	user, _ := s.storage.GetUser(username)
 
 	if user == nil {
 		return nil, internal.ErrUserNotFound
@@ -222,15 +208,15 @@ func (s *userService) Login(username, password string) (*internal.User, error) {
 }
 
 func (s *userService) Logout(username string) (*internal.User, error) {
-	user, err := s.storage.GetUser(username)
+	user, _ := s.storage.GetUser(username)
 
-	if err != nil || user == nil {
-		return nil, err
+	if user == nil {
+		return nil, internal.ErrUserNotFound
 	}
 
 	user.Session = internal.UserSession{}
 
-	err = s.storage.SetUser(*user)
+	err := s.storage.SetUser(*user)
 
 	if err != nil {
 		return nil, err
@@ -240,10 +226,8 @@ func (s *userService) Logout(username string) (*internal.User, error) {
 }
 
 func (s *userService) VerifySession(username, sessionkey string) (bool, error) {
-	user, err := s.storage.GetUser(username)
-	if err != nil {
-		return false, err
-	}
+	user, _ := s.storage.GetUser(username)
+
 	if user == nil {
 		return false, internal.ErrUserNotFound
 	}

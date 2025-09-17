@@ -3,7 +3,9 @@ package services
 import (
 	"MediaMTXAuth/internal"
 	"MediaMTXAuth/internal/storage/memory"
+	"fmt"
 	"testing"
+	"time"
 
 	"github.com/google/go-cmp/cmp"
 )
@@ -31,6 +33,18 @@ func TestUserService(t *testing.T) {
 			if user == nil {
 				t.Errorf("Created user is nil")
 				return
+			}
+		})
+
+		t.Run("duplicate user creation", func(t *testing.T) {
+			t.Cleanup(storage.Clear)
+			_, err := userService.Create(username, password, false)
+			if err != nil {
+				t.Errorf("Failed to create user: %v", err)
+			}
+			_, err = userService.Create(username, password, false)
+			if err != internal.ErrUserAlreadyExists {
+				t.Errorf("Expected ErrUserAlreadyExists, got %v", err)
 			}
 		})
 
@@ -108,6 +122,14 @@ func TestUserService(t *testing.T) {
 		}
 	})
 
+	t.Run("change password for non-existent user", func(t *testing.T) {
+		t.Cleanup(storage.Clear)
+		err := userService.ChangePassword("nouser", "newpassword")
+		if err != internal.ErrUserNotFound {
+			t.Errorf("Expected ErrUserNotFound, got %v", err)
+		}
+	})
+
 	t.Run("reset password", func(t *testing.T) {
 		t.Cleanup(storage.Clear)
 		user, err := userService.Create(username, password, false)
@@ -136,6 +158,14 @@ func TestUserService(t *testing.T) {
 		}
 	})
 
+	t.Run("reset password for non-existent user", func(t *testing.T) {
+		t.Cleanup(storage.Clear)
+		_, err := userService.ResetPassword("nouser")
+		if err != internal.ErrUserNotFound {
+			t.Errorf("Expected ErrUserNotFound, got %v", err)
+		}
+	})
+
 	t.Run("reset stream key", func(t *testing.T) {
 		t.Cleanup(storage.Clear)
 		user, err := userService.Create(username, password, false)
@@ -161,6 +191,13 @@ func TestUserService(t *testing.T) {
 
 		if updatedUser.StreamKey != newStreamKey {
 			t.Errorf("Expected stream key %s, got %s", newStreamKey, updatedUser.StreamKey)
+		}
+	})
+	t.Run("reset stream key for non-existent user", func(t *testing.T) {
+		t.Cleanup(storage.Clear)
+		_, err := userService.ResetStreamKey("nouser")
+		if err != internal.ErrUserNotFound {
+			t.Errorf("Expected ErrUserNotFound, got %v", err)
 		}
 	})
 
@@ -215,6 +252,14 @@ func TestUserService(t *testing.T) {
 		})
 	})
 
+	t.Run("login in to non-existent user", func(t *testing.T) {
+		t.Cleanup(storage.Clear)
+		_, err := userService.Login("nouser", "password")
+		if err != internal.ErrUserNotFound {
+			t.Errorf("Expected ErrUserNotFound, got %v", err)
+		}
+	})
+
 	t.Run("create default admin user", func(t *testing.T) {
 		t.Cleanup(storage.Clear)
 		result, err := userService.CreateDefaultAdminUser()
@@ -238,5 +283,76 @@ func TestUserService(t *testing.T) {
 		if adminUser.IsAdmin != true {
 			t.Errorf("Expected admin, got %v", adminUser.IsAdmin)
 		}
+	})
+
+	t.Run("duplicate default admin creation", func(t *testing.T) {
+		t.Cleanup(storage.Clear)
+		_, err := userService.CreateDefaultAdminUser()
+		if err != nil {
+			t.Errorf("Failed to create user: %v", err)
+		}
+		_, err = userService.CreateDefaultAdminUser()
+		if err != internal.ErrUserAlreadyExists {
+			t.Errorf("Expected ErrUserAlreadyExists, got %v", err)
+		}
+	})
+
+	t.Run("verify session", func(t *testing.T) {
+		t.Cleanup(storage.Clear)
+		_, err := userService.Create(username, password, false)
+		if err != nil {
+			t.Errorf("Failed to create user: %v", err)
+			return
+		}
+
+		user, err := userService.Login(username, password)
+		if err != nil {
+			t.Errorf("Failed to login: %v", err)
+			return
+		}
+
+		sessionKey := fmt.Sprintf("%d", user.Session.ID)
+
+		t.Run("valid session", func(t *testing.T) {
+			valid, err := userService.VerifySession(username, sessionKey)
+			if err != nil {
+				t.Errorf("VerifySession returned error: %v", err)
+			}
+			if !valid {
+				t.Errorf("Expected valid session, got invalid")
+			}
+		})
+
+		t.Run("invalid session key", func(t *testing.T) {
+			valid, err := userService.VerifySession(username, "wrongkey")
+			if err != nil {
+				t.Errorf("VerifySession returned error: %v", err)
+			}
+			if valid {
+				t.Errorf("Expected invalid session, got valid")
+			}
+		})
+
+		t.Run("expired session", func(t *testing.T) {
+			user.Session.Expiration = time.Now().Add(-time.Hour)
+			_ = storage.SetUser(*user)
+			valid, err := userService.VerifySession(username, sessionKey)
+			if err != nil {
+				t.Errorf("VerifySession returned error: %v", err)
+			}
+			if valid {
+				t.Errorf("Expected invalid session due to expiration, got valid")
+			}
+		})
+
+		t.Run("user not found", func(t *testing.T) {
+			valid, err := userService.VerifySession("nouser", sessionKey)
+			if err != internal.ErrUserNotFound {
+				t.Errorf("Expected ErrUserNotFound, got %v", err)
+			}
+			if valid {
+				t.Errorf("Expected invalid session for missing user, got valid")
+			}
+		})
 	})
 }

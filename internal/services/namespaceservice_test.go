@@ -1,6 +1,7 @@
 package services
 
 import (
+	"MediaMTXAuth/internal"
 	"MediaMTXAuth/internal/storage/memory"
 	"testing"
 
@@ -32,6 +33,17 @@ func TestNamespaceService(t *testing.T) {
 				return
 			}
 		})
+		t.Run("duplicate namespace creation", func(t *testing.T) {
+			t.Cleanup(storage.Clear)
+			_, err := namespaceService.Create(namespace)
+			if err != nil {
+				t.Errorf("Failed to create namespace: %v", err)
+			}
+			_, err = namespaceService.Create(namespace)
+			if err != internal.ErrNamespaceAlreadyExists {
+				t.Errorf("Expected ErrNamespaceAlreadyExists, got %v", err)
+			}
+		})
 	})
 
 	t.Run("get namespace", func(t *testing.T) {
@@ -53,6 +65,14 @@ func TestNamespaceService(t *testing.T) {
 			t.Errorf("Created and retrieved users are not equal")
 			t.Logf("expected: %v", *createdNamespace)
 			t.Logf("got: %v", *retrievedNamespace)
+		}
+	})
+
+	t.Run("get from non-existent namespace", func(t *testing.T) {
+		t.Cleanup(storage.Clear)
+		_, err := namespaceService.Get("nonexistent")
+		if err != internal.ErrNamespaceNotFound {
+			t.Errorf("Expected ErrNamespaceNotFound, got %v", err)
 		}
 	})
 
@@ -94,6 +114,14 @@ func TestNamespaceService(t *testing.T) {
 		}
 	})
 
+	t.Run("add session to non-existent namespace", func(t *testing.T) {
+		t.Cleanup(storage.Clear)
+		_, err := namespaceService.AddSession("nonexistent", session, username)
+		if err != internal.ErrNamespaceNotFound {
+			t.Errorf("Expected ErrNamespaceNotFound, got %v", err)
+		}
+	})
+
 	t.Run("session removal", func(t *testing.T) {
 		t.Cleanup(storage.Clear)
 		_, err := namespaceService.Create(namespace)
@@ -122,6 +150,13 @@ func TestNamespaceService(t *testing.T) {
 
 		if len(retrievedNamespace.Sessions) != 0 {
 			t.Errorf("Expected 0 session, got %d", len(retrievedNamespace.Sessions))
+		}
+	})
+	t.Run("remove session from non-existent namespace", func(t *testing.T) {
+		t.Cleanup(storage.Clear)
+		err := namespaceService.RemoveSession("nonexistent", "somesession")
+		if err != internal.ErrNamespaceNotFound {
+			t.Errorf("Expected ErrNamespaceNotFound, got %v", err)
 		}
 	})
 }

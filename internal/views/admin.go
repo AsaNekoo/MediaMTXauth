@@ -38,9 +38,8 @@ func (v *Admin) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 }
 
 func (v *Admin) showAdminForm(rw http.ResponseWriter, r *http.Request) {
-	// Check authentication first
 	if !v.requireAuth(rw, r) {
-		return // requireAuth handles the redirect
+		return
 	}
 
 	data := AdminData{}

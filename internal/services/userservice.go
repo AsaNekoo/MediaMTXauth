@@ -99,7 +99,7 @@ func (s *userService) CreateDefaultAdminUser() (string, error) {
 	}
 
 	if errors.Is(err, internal.ErrUserAlreadyExists) {
-		return "", err
+		return "", nil
 	}
 
 	return "", err

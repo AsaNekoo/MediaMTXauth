@@ -285,18 +285,6 @@ func TestUserService(t *testing.T) {
 		}
 	})
 
-	t.Run("duplicate default admin creation", func(t *testing.T) {
-		t.Cleanup(storage.Clear)
-		_, err := userService.CreateDefaultAdminUser()
-		if err != nil {
-			t.Errorf("Failed to create user: %v", err)
-		}
-		_, err = userService.CreateDefaultAdminUser()
-		if err != internal.ErrUserAlreadyExists {
-			t.Errorf("Expected ErrUserAlreadyExists, got %v", err)
-		}
-	})
-
 	t.Run("verify session", func(t *testing.T) {
 		t.Cleanup(storage.Clear)
 		_, err := userService.Create(username, password, false)

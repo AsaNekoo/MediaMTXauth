@@ -71,12 +71,3 @@ func (v *Admin) requireAuth(w http.ResponseWriter, r *http.Request) bool {
 
 	return true
 }
-
-//func (v *Admin) renderWithError(rw http.ResponseWriter, r *http.Request, errorMsg string) {
-//	data := LoginData{Error: errorMsg}
-//	rw.Header().Set("Content-Type", "text/html; charset=utf-8")
-//	rw.WriteHeader(http.StatusUnauthorized)
-//	if err := v.template.Execute(rw, data); err != nil {
-//		http.Error(rw, "Internal server error", http.StatusInternalServerError)
-//	}
-//}

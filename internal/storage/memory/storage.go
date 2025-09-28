@@ -87,3 +87,16 @@ func (s *Storage) Clear() {
 	clear(s.Users)
 	clear(s.Namespaces)
 }
+
+func (s *Storage) GetAllUsers() ([]internal.User, error) {
+	if s == nil || s.Users == nil {
+		return []internal.User{}, nil
+	}
+
+	users := make([]internal.User, 0, len(s.Users))
+	for _, user := range s.Users {
+		users = append(users, user)
+	}
+
+	return users, nil
+}

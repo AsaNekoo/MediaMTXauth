@@ -57,6 +57,7 @@ type UserService interface {
 	CreateDefaultAdminUser() (string, error)
 	Get(username string) (*User, error)
 	Delete(name string) error
+	GetAllUsers() ([]User, error)
 
 	ChangePassword(username, password string) error
 	ResetPassword(username string) (string, error)

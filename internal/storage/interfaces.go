@@ -11,6 +11,7 @@ type Storage interface {
 
 	SetUser(internal.User) error
 	GetUser(string) (*internal.User, error)
+	GetAllUsers() ([]internal.User, error)
 	DeleteUser(string) error
 
 	SetNamespace(internal.Namespace) error

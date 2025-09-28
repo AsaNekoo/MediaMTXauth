@@ -66,6 +66,28 @@ func (s *boltStorage) DeleteNamespace(name string) error {
 	return remove[internal.Namespace](s.DB, namespacesBucket, name)
 }
 
+func (s *boltStorage) GetAllUsers() ([]internal.User, error) {
+	var users []internal.User
+
+	err := s.DB.View(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket(usersBucket)
+		if bucket == nil {
+			return nil
+		}
+
+		return bucket.ForEach(func(k, v []byte) error {
+			var user internal.User
+			if err := json.Unmarshal(v, &user); err != nil {
+				return err
+			}
+			users = append(users, user)
+			return nil
+		})
+	})
+
+	return users, err
+}
+
 func set[T internal.WithID](db *bolt.DB, bucket []byte, v T) error {
 	data, err := json.Marshal(&v)
 

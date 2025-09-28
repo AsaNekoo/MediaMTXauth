@@ -242,3 +242,7 @@ func (s *userService) VerifySession(username, sessionkey string) (bool, error) {
 	}
 	return false, nil
 }
+
+func (s *userService) GetAllUsers() ([]internal.User, error) {
+	return s.storage.GetAllUsers()
+}

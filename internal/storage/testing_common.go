@@ -59,6 +59,24 @@ func XTestStorage(t *testing.T, s Storage) {
 			return
 		}
 
+		t.Run("get all", func(t *testing.T) {
+			users, err := s.GetAllUsers()
+			if err != nil {
+				t.Errorf("Failed to get all users: %v", err)
+				return 
+			}
+			if len(users) != 1 {
+				t.Errorf("Expected 1 user, got %d", len(users))
+				return 
+			}
+			if !cmp.Equal(users[0], u) {
+				t.Errorf("Stored user is not equal to stored one")
+				t.Logf("expected: %v", u)
+				t.Logf("got: %v", users[0])
+				return
+			}
+		})
+
 		t.Run("delete", func(t *testing.T) {
 			s.DeleteUser(u.Name)
 

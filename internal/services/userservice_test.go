@@ -62,6 +62,51 @@ func TestUserService(t *testing.T) {
 		})
 	})
 
+	t.Run("get all users", func(t *testing.T) {
+		t.Cleanup(storage.Clear)
+		user, err := userService.Create(username, password, true)
+		if err != nil {
+			t.Errorf("Failed to create user: %v", err)
+			return
+		}
+
+		users, err := userService.GetAllUsers()
+		if err != nil {
+			t.Errorf("Failed to get all users: %v", err)
+			return
+		}
+
+		if len(users) != 1 {
+			t.Errorf("Expected 1 user, got %d", len(users))
+			return
+		}
+
+		if !cmp.Equal(users[0], *user) {
+			t.Errorf("Expected user: %v, got: %v", user, users[0])
+		}
+
+		user, err = userService.Create("username2", password, true)
+		if err != nil {
+			t.Errorf("Failed to create user: %v", err)
+			return
+		}
+
+		users, err = userService.GetAllUsers()
+		if err != nil {
+			t.Errorf("Failed to get all users: %v", err)
+			return
+		}
+
+		if len(users) != 2 {
+			t.Errorf("Expected 2 users, got %d", len(users))
+			return
+		}
+
+		if !cmp.Equal(users[1], *user) {
+			t.Errorf("Expected user: %v, got: %v", user, users[1])
+		}
+	})
+
 	t.Run("get user", func(t *testing.T) {
 		t.Cleanup(storage.Clear)
 		createdUser, err := userService.Create(username, password, true)

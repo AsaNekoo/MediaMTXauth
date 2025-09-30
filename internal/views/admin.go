@@ -18,6 +18,7 @@ type Admin struct {
 type AdminData struct {
 	Error   string
 	Message string
+	Users   []internal.User
 }
 
 func NewAdmin(userService internal.UserService) *Admin {
@@ -32,21 +33,74 @@ func (v *Admin) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
 		v.showAdminForm(rw, r)
+	case http.MethodPost:
+		v.HandleAddUser(rw, r)
 	default:
 		http.Error(rw, "Method not allowed", http.StatusMethodNotAllowed)
 	}
 }
 
 func (v *Admin) showAdminForm(rw http.ResponseWriter, r *http.Request) {
-	if !v.requireAuth(rw, r) {
+	if !v.requireAdminAuth(rw, r) {
 		return
 	}
 
-	data := AdminData{}
+	// Get all users from storage
+	users, err := v.UserService.GetAllUsers()
+	if err != nil {
+		data := AdminData{Error: "Failed to load users"}
+		v.renderTemplate(rw, data)
+		return
+	}
+
+	data := AdminData{Users: users}
+	v.renderTemplate(rw, data)
+}
+
+func (v *Admin) HandleAddUser(rw http.ResponseWriter, r *http.Request) {
+	if !v.requireAdminAuth(rw, r) {
+		return
+	}
+
+	username := r.FormValue("username")
+	isAdminStr := r.FormValue("isAdmin")
+	isAdmin := isAdminStr == "true"
+
+	password := "changeme123" //later
+
+	_, err := v.UserService.Create(username, password, isAdmin)
+	if err != nil {
+		users, _ := v.UserService.GetAllUsers()
+		data := AdminData{Error: err.Error(), Users: users}
+		v.renderTemplate(rw, data)
+		return
+	}
+
+	http.Redirect(rw, r, "/admin", http.StatusSeeOther)
+}
+
+func (v *Admin) HandleRemoveUser(rw http.ResponseWriter, r *http.Request) {
+	if !v.requireAdminAuth(rw, r) {
+		return
+	}
+
+	username := r.FormValue("username")
+
+	err := v.UserService.Delete(username)
+	if err != nil {
+		users, _ := v.UserService.GetAllUsers()
+		data := AdminData{Error: err.Error(), Users: users}
+		v.renderTemplate(rw, data)
+		return
+	}
+
+	http.Redirect(rw, r, "/admin", http.StatusSeeOther)
+}
+
+func (v *Admin) renderTemplate(rw http.ResponseWriter, data AdminData) {
 	rw.Header().Set("Content-Type", "text/html; charset=utf-8")
 	if err := v.template.Execute(rw, data); err != nil {
 		http.Error(rw, "Internal server error", http.StatusInternalServerError)
-		return
 	}
 }
 

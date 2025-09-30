@@ -98,5 +98,9 @@ func (v *Login) handleLogin(rw http.ResponseWriter, r *http.Request) {
 	}
 	http.SetCookie(rw, usernameCookie)
 
-	http.Redirect(rw, r, "/admin", http.StatusSeeOther)
+	if user.IsAdmin {
+		http.Redirect(rw, r, "/admin", http.StatusSeeOther)
+	} else {
+		http.Redirect(rw, r, "/panel", http.StatusSeeOther)
+	}
 }

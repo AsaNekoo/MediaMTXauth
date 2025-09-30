@@ -71,3 +71,19 @@ func (v *Admin) requireAuth(w http.ResponseWriter, r *http.Request) bool {
 
 	return true
 }
+
+func (v *Admin) requireAdminAuth(w http.ResponseWriter, r *http.Request) bool {
+	if !v.requireAuth(w, r) {
+		return false
+	}
+
+	usernameCookie, _ := r.Cookie("username")
+	user, _ := v.UserService.Get(usernameCookie.Value)
+
+	if !user.IsAdmin {
+		http.Redirect(w, r, "/panel", http.StatusFound)
+		return false
+	}
+
+	return true
+}

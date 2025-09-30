@@ -43,15 +43,29 @@ func main() {
 	}
 
 	defer store.Close()
+	requirePost := func(handler func(http.ResponseWriter, *http.Request)) http.HandlerFunc {
+		return func(w http.ResponseWriter, r *http.Request) {
+			if r.Method != http.MethodPost {
+				http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+				return
+			}
+			handler(w, r)
+		}
+	}
 
 	loginView := views.NewLogin(userService)
 	adminView := views.NewAdmin(userService)
 
-	// Setup routes
 	mux := http.NewServeMux()
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("internal/views/pages/static"))))
+
+	// Views
 	mux.Handle("/login", loginView)
 	mux.Handle("/admin", adminView)
+
+	// POST
+	mux.HandleFunc("/admin/add", requirePost(adminView.HandleAddUser))
+	mux.HandleFunc("/admin/remove", requirePost(adminView.HandleRemoveUser))
 
 	log.Println("Server starting on :8080")
 	log.Fatal(http.ListenAndServe(":8080", mux))

@@ -9,8 +9,97 @@
 <body>
 <div class="container">
     <div class="header">
-        <h1>Admin panel</h1>
+        <h1>Admin Panel</h1>
+    </div>
+    
+    {{if .Error}}
+    <div class="error">{{.Error}}</div>
+    {{end}}
+
+    {{if .Message}}
+    <div class="success">{{.Message}}</div>
+    {{end}}
+
+    <!-- Users List -->
+    <div class="users-list">
+        <h2>Users</h2>
+        {{if .Users}}
+        <table class="users-table">
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{range .Users}}
+                <tr>
+                    <td>{{.Name}}</td>
+                    <td>
+                        <button class="btn-remove" onclick="removeUser('{{.Name}}')">Remove</button>
+                    </td>
+                </tr>
+                {{end}}
+            </tbody>
+        </table>
+        {{else}}
+        <p>No users found.</p>
+        {{end}}
+    </div>
+    
+    <button class="fab" onclick="openAddUserModal()">+</button>
+</div>
+
+<div id="addUserModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeAddUserModal()">&times;</span>
+        <h2>Add New User</h2>
+        <form method="POST" action="/admin/add">
+            <div class="form-group">
+                <input type="text" id="username" name="username" required placeholder="Username">
+            </div>
+            <div class="form-group checkbox-group">
+                <input type="checkbox" id="isAdmin" name="isAdmin" value="true">
+                <label for="isAdmin">Admin Rights</label>
+            </div>
+            <button type="submit" class="btn">Submit</button>
+        </form>
     </div>
 </div>
+
+<script>
+function openAddUserModal() {
+    document.getElementById("addUserModal").style.display = "block";
+}
+
+function closeAddUserModal() {
+    document.getElementById("addUserModal").style.display = "none";
+}
+
+window.onclick = function(event) {
+    const modal = document.getElementById("addUserModal");
+    if (event.target === modal) {
+        modal.style.display = "none";
+    }
+}
+
+function removeUser(username) {
+    if (confirm('Are you sure you want to remove user "' + username + '"?')) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '/admin/remove';
+        
+        const usernameInput = document.createElement('input');
+        usernameInput.type = 'hidden';
+        usernameInput.name = 'username';
+        usernameInput.value = username;
+        
+        form.appendChild(usernameInput);
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+</script>
+
 </body>
 </html>

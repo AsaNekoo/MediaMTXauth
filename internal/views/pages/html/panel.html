@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>panel</title>
+    <link rel="stylesheet" href="/static/main.css">
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>{{.User.Name}}</h1>
+    </div>
+    
+    {{if .Error}}
+    <div class="error">{{.Error}}</div>
+    {{end}}
+
+    {{if .Message}}
+    <div class="success">{{.Message}}</div>
+    {{end}}
+
+    <div class="content">
+        <p>Your StreamKey: {{.User.StreamKey}}</p>
+    </div>
+
+</div>
+
+</body>
+</html>

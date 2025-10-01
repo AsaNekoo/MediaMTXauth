@@ -1,7 +1,8 @@
-package views
+package pages
 
 import (
 	"MediaMTXAuth/internal"
+	"MediaMTXAuth/internal/views"
 	_ "embed"
 	"html/template"
 	"net/http"
@@ -9,28 +10,24 @@ import (
 	"time"
 )
 
-//go:embed pages/login.html
+//go:embed html/login.html
 var LoginPageHTML string
 
-type Login struct {
-	UserService internal.UserService
-	template    *template.Template
+type LoginPage struct {
+	*views.Page
 }
 
-type LoginData struct {
-	Error   string
-	Message string
-}
-
-func NewLogin(userService internal.UserService) *Login {
+func NewLogin(userService internal.UserService) *LoginPage {
 	tmpl := template.Must(template.New("pages").Parse(LoginPageHTML))
-	return &Login{
-		UserService: userService,
-		template:    tmpl,
+	return &LoginPage{
+		Page: &views.Page{
+			UserService: userService,
+			Template:    tmpl,
+		},
 	}
 }
 
-func (v *Login) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
+func (v *LoginPage) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
 		v.showLoginForm(rw, r)
@@ -41,26 +38,26 @@ func (v *Login) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (v *Login) showLoginForm(rw http.ResponseWriter, r *http.Request) {
-	data := LoginData{}
+func (v *LoginPage) showLoginForm(rw http.ResponseWriter, r *http.Request) {
+	data := views.LoginData{}
 
 	rw.Header().Set("Content-Type", "text/html; charset=utf-8")
-	if err := v.template.Execute(rw, data); err != nil {
+	if err := v.Template.Execute(rw, data); err != nil {
 		http.Error(rw, "Internal server error", http.StatusInternalServerError)
 		return
 	}
 }
 
-func (v *Login) renderWithError(rw http.ResponseWriter, r *http.Request, errorMsg string) {
-	data := LoginData{Error: errorMsg}
+func (v *LoginPage) renderWithError(rw http.ResponseWriter, r *http.Request, errorMsg string) {
+	data := views.LoginData{Error: errorMsg}
 	rw.Header().Set("Content-Type", "text/html; charset=utf-8")
 	rw.WriteHeader(http.StatusUnauthorized)
-	if err := v.template.Execute(rw, data); err != nil {
+	if err := v.Template.Execute(rw, data); err != nil {
 		http.Error(rw, "Internal server error", http.StatusInternalServerError)
 	}
 }
 
-func (v *Login) handleLogin(rw http.ResponseWriter, r *http.Request) {
+func (v *LoginPage) handleLogin(rw http.ResponseWriter, r *http.Request) {
 
 	username := r.FormValue("username")
 	password := r.FormValue("password")

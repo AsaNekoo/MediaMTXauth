@@ -22,7 +22,11 @@
 
     <!-- Users List -->
     <div class="users-list">
-        <h2>Users</h2>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h2>Users</h2>
+            <button class="btn" style="width: auto; margin: 0;" onclick="openAddUserModal()">Add User</button>
+        </div>
+
         {{if .Users}}
         <table class="users-table">
             <thead>
@@ -46,8 +50,36 @@
         <p>No users found.</p>
         {{end}}
     </div>
-    
-    <button class="fab" onclick="openAddUserModal()">+</button>
+
+    <!-- Namespaces List -->
+    <div class="namespaces-list" style="margin-top: 2rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h2>Namespaces</h2>
+            <button class="btn" style="width: auto; margin: 0;" onclick="openAddNamespaceModal()">Add Namespace</button>
+        </div>
+        {{if .Namespaces}}
+        <table class="namespaces-table" style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr>
+                    <th style="text-align: left; padding: 8px;">Name</th>
+                    <th style="text-align: left; padding: 8px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {{range .Namespaces}}
+                <tr>
+                    <td style="padding: 8px; border-bottom: 1px solid #ddd;">{{.Name}}</td>
+                    <td style="padding: 8px; border-bottom: 1px solid #ddd;">
+                        <button class="btn-remove" onclick="removeNamespace('{{.Name}}')">Remove</button>
+                    </td>
+                </tr>
+                {{end}}
+            </tbody>
+        </table>
+        {{else}}
+        <p>No namespaces found.</p>
+        {{end}}
+    </div>
 </div>
 
 <div id="addUserModal" class="modal">
@@ -58,9 +90,30 @@
             <div class="form-group">
                 <input type="text" id="username" name="username" required placeholder="Username">
             </div>
+            <div class="form-group">
+                <select id="namespace" name="namespace" style="width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 4px;">
+                    <option value="">Select Namespace (Optional)</option>
+                    {{range .Namespaces}}
+                    <option value="{{.Name}}">{{.Name}}</option>
+                    {{end}}
+                </select>
+            </div>
             <div class="form-group checkbox-group">
                 <input type="checkbox" id="isAdmin" name="isAdmin" value="true">
                 <label for="isAdmin">Admin Rights</label>
+            </div>
+            <button type="submit" class="btn">Submit</button>
+        </form>
+    </div>
+</div>
+
+<div id="addNamespaceModal" class="modal">
+    <div class="modal-content">
+        <span class="close" onclick="closeAddNamespaceModal()">&times;</span>
+        <h2>Add New Namespace</h2>
+        <form method="POST" action="/admin/add_namespace">
+            <div class="form-group">
+                <input type="text" id="name" name="name" required placeholder="Namespace Name">
             </div>
             <button type="submit" class="btn">Submit</button>
         </form>
@@ -76,10 +129,22 @@ function closeAddUserModal() {
     document.getElementById("addUserModal").style.display = "none";
 }
 
+function openAddNamespaceModal() {
+    document.getElementById("addNamespaceModal").style.display = "block";
+}
+
+function closeAddNamespaceModal() {
+    document.getElementById("addNamespaceModal").style.display = "none";
+}
+
 window.onclick = function(event) {
-    const modal = document.getElementById("addUserModal");
-    if (event.target === modal) {
-        modal.style.display = "none";
+    const userModal = document.getElementById("addUserModal");
+    const namespaceModal = document.getElementById("addNamespaceModal");
+    if (event.target === userModal) {
+        userModal.style.display = "none";
+    }
+    if (event.target === namespaceModal) {
+        namespaceModal.style.display = "none";
     }
 }
 
@@ -95,6 +160,23 @@ function removeUser(username) {
         usernameInput.value = username;
         
         form.appendChild(usernameInput);
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+
+function removeNamespace(name) {
+    if (confirm('Are you sure you want to remove namespace "' + name + '"?')) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '/admin/remove_namespace';
+        
+        const nameInput = document.createElement('input');
+        nameInput.type = 'hidden';
+        nameInput.name = 'name';
+        nameInput.value = name;
+        
+        form.appendChild(nameInput);
         document.body.appendChild(form);
         form.submit();
     }

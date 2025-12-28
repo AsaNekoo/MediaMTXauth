@@ -14,15 +14,17 @@ var AdminPageHTML string
 
 type AdminPage struct {
 	*views.Page
+	NamespaceService internal.NamespaceService
 }
 
-func NewAdmin(userService internal.UserService) *AdminPage {
+func NewAdmin(userService internal.UserService, namespaceService internal.NamespaceService) *AdminPage {
 	tmpl := template.Must(template.New("pages").Parse(AdminPageHTML))
 	return &AdminPage{
 		Page: &views.Page{
 			UserService: userService,
 			Template:    tmpl,
 		},
+		NamespaceService: namespaceService,
 	}
 }
 
@@ -36,37 +38,55 @@ func (v *AdminPage) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 }
 
 func (v *AdminPage) showAdminForm(rw http.ResponseWriter, r *http.Request) {
-	if !handlers.RequireAdminAuth(v.Page, rw, r) {
+	username, authenticated := handlers.RequireAdminAuth(v.Page, rw, r)
+	if !authenticated {
+		return
+	}
+
+	currentUser, err := v.UserService.Get(username)
+	if err != nil {
+		http.Redirect(rw, r, "/login", http.StatusFound)
 		return
 	}
 
 	// Get all users from storage
 	users, err := v.UserService.GetAllUsers()
 	if err != nil {
-		data := views.AdminData{Error: "Failed to load users"}
+		data := views.AdminData{Error: "Failed to load users", User: *currentUser}
 		v.renderTemplate(rw, data)
 		return
 	}
 
-	data := views.AdminData{Users: users}
+	// Get all namespaces from storage
+	namespaces, err := v.NamespaceService.GetAllNamespaces()
+	if err != nil {
+		data := views.AdminData{Error: "Failed to load namespaces", Users: users, User: *currentUser}
+		v.renderTemplate(rw, data)
+		return
+	}
+
+	data := views.AdminData{Users: users, Namespaces: namespaces, User: *currentUser}
 	v.renderTemplate(rw, data)
 }
 
 func (v *AdminPage) HandleAddUser(rw http.ResponseWriter, r *http.Request) {
-	if !handlers.RequireAdminAuth(v.Page, rw, r) {
+	_, authenticated := handlers.RequireAdminAuth(v.Page, rw, r)
+	if !authenticated {
 		return
 	}
 
 	username := r.FormValue("username")
+	namespace := r.FormValue("namespace")
 	isAdminStr := r.FormValue("isAdmin")
 	isAdmin := isAdminStr == "true"
 
 	password := "changeme123" //later
 
-	_, err := v.UserService.Create(username, password, isAdmin)
+	_, err := v.UserService.Create(username, password, isAdmin, namespace)
 	if err != nil {
 		users, _ := v.UserService.GetAllUsers()
-		data := views.AdminData{Error: err.Error(), Users: users}
+		namespaces, _ := v.NamespaceService.GetAllNamespaces()
+		data := views.AdminData{Error: err.Error(), Users: users, Namespaces: namespaces}
 		v.renderTemplate(rw, data)
 		return
 	}
@@ -75,7 +95,8 @@ func (v *AdminPage) HandleAddUser(rw http.ResponseWriter, r *http.Request) {
 }
 
 func (v *AdminPage) HandleRemoveUser(rw http.ResponseWriter, r *http.Request) {
-	if !handlers.RequireAdminAuth(v.Page, rw, r) {
+	_, authenticated := handlers.RequireAdminAuth(v.Page, rw, r)
+	if !authenticated {
 		return
 	}
 
@@ -84,7 +105,48 @@ func (v *AdminPage) HandleRemoveUser(rw http.ResponseWriter, r *http.Request) {
 	err := v.UserService.Delete(username)
 	if err != nil {
 		users, _ := v.UserService.GetAllUsers()
-		data := views.AdminData{Error: err.Error(), Users: users}
+		namespaces, _ := v.NamespaceService.GetAllNamespaces()
+		data := views.AdminData{Error: err.Error(), Users: users, Namespaces: namespaces}
+		v.renderTemplate(rw, data)
+		return
+	}
+
+	http.Redirect(rw, r, "/admin", http.StatusSeeOther)
+}
+
+func (v *AdminPage) HandleAddNamespace(rw http.ResponseWriter, r *http.Request) {
+	_, authenticated := handlers.RequireAdminAuth(v.Page, rw, r)
+	if !authenticated {
+		return
+	}
+
+	name := r.FormValue("name")
+
+	_, err := v.NamespaceService.Create(name)
+	if err != nil {
+		users, _ := v.UserService.GetAllUsers()
+		namespaces, _ := v.NamespaceService.GetAllNamespaces()
+		data := views.AdminData{Error: err.Error(), Users: users, Namespaces: namespaces}
+		v.renderTemplate(rw, data)
+		return
+	}
+
+	http.Redirect(rw, r, "/admin", http.StatusSeeOther)
+}
+
+func (v *AdminPage) HandleRemoveNamespace(rw http.ResponseWriter, r *http.Request) {
+	_, authenticated := handlers.RequireAdminAuth(v.Page, rw, r)
+	if !authenticated {
+		return
+	}
+
+	name := r.FormValue("name")
+
+	err := v.NamespaceService.Delete(name)
+	if err != nil {
+		users, _ := v.UserService.GetAllUsers()
+		namespaces, _ := v.NamespaceService.GetAllNamespaces()
+		data := views.AdminData{Error: err.Error(), Users: users, Namespaces: namespaces}
 		v.renderTemplate(rw, data)
 		return
 	}

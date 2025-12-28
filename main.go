@@ -32,6 +32,7 @@ func main() {
 	}
 
 	userService := services.NewUserService(store)
+	namespaceService := services.NewNamespaceService(store)
 
 	adminPassword, err := userService.CreateDefaultAdminUser()
 
@@ -55,9 +56,9 @@ func main() {
 	}
 
 	loginView := pages.NewLogin(userService)
-	adminView := pages.NewAdmin(userService)
+	adminView := pages.NewAdmin(userService, namespaceService)
 	panelView := pages.NewPanel(userService)
-	api := api.NewApi(userService)
+	api := api.NewApi(userService, namespaceService)
 
 	mux := http.NewServeMux()
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("internal/views/pages/html/static"))))
@@ -73,6 +74,9 @@ func main() {
 	// POST
 	mux.HandleFunc("/admin/add", requirePost(adminView.HandleAddUser))
 	mux.HandleFunc("/admin/remove", requirePost(adminView.HandleRemoveUser))
+	mux.HandleFunc("/admin/add_namespace", requirePost(adminView.HandleAddNamespace))
+	mux.HandleFunc("/admin/remove_namespace", requirePost(adminView.HandleRemoveNamespace))
+	mux.HandleFunc("/panel/change_password", requirePost(panelView.HandleChangePassword))
 
 	log.Println("Server starting on :8080")
 	log.Fatal(http.ListenAndServe(":8080", mux))

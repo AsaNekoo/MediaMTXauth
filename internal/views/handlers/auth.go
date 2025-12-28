@@ -27,22 +27,22 @@ func RequireAuth(page *views.Page, w http.ResponseWriter, r *http.Request) (stri
 	return usernameCookie.Value, true
 }
 
-func RequireAdminAuth(page *views.Page, w http.ResponseWriter, r *http.Request) bool {
+func RequireAdminAuth(page *views.Page, w http.ResponseWriter, r *http.Request) (string, bool) {
 	username, authenticated := RequireAuth(page, w, r)
 	if !authenticated {
-		return false
+		return "", false
 	}
 
 	user, err := page.UserService.Get(username)
 	if err != nil {
 		http.Redirect(w, r, "/login", http.StatusFound)
-		return false
+		return "", false
 	}
 
 	if !user.IsAdmin {
 		http.Redirect(w, r, "/panel", http.StatusFound)
-		return false
+		return "", false
 	}
 
-	return true
+	return username, true
 }

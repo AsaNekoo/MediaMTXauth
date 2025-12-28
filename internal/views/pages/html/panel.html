@@ -20,9 +20,22 @@
     <div class="success">{{.Message}}</div>
     {{end}}
 
+    {{if .User.Password.IsGenerated}}
     <div class="content">
-        <p>Your StreamKey: {{.User.StreamKey}}</p>
+        <h2>Change Password</h2>
+        <p>You are using a generated password. Please change it to continue.</p>
+        <form method="POST" action="/panel/change_password">
+            <div class="form-group">
+                <input type="password" name="password" required placeholder="New Password">
+            </div>
+            <button type="submit" class="btn">Change Password</button>
+        </form>
     </div>
+    {{else}}
+    <div class="content">
+        <p>Your StreamKey: {{.User.Name}}?key={{.User.StreamKey}}</p>
+    </div>
+    {{end}}
 
 </div>
 

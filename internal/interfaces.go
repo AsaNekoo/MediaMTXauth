@@ -21,6 +21,7 @@ type User struct {
 	IsAdmin   bool
 	Password  UserPassword
 	Session   UserSession
+	Namespace string
 }
 
 func (ns User) GetID() string {
@@ -53,7 +54,7 @@ type WithID interface {
 }
 
 type UserService interface {
-	Create(username, password string, isAdmin bool) (*User, error)
+	Create(username, password string, isAdmin bool, namespace string) (*User, error)
 	CreateDefaultAdminUser() (string, error)
 	Get(username string) (*User, error)
 	Delete(name string) error
@@ -70,6 +71,7 @@ type UserService interface {
 type NamespaceService interface {
 	Create(name string) (*Namespace, error)
 	Get(name string) (*Namespace, error)
+	GetAllNamespaces() ([]Namespace, error)
 	Delete(name string) error
 
 	AddSession(namespace, sessionName, user string) (*NamespaceSession, error)

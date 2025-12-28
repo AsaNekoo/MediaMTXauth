@@ -100,3 +100,16 @@ func (s *Storage) GetAllUsers() ([]internal.User, error) {
 
 	return users, nil
 }
+
+func (s *Storage) GetAllNamespaces() ([]internal.Namespace, error) {
+	if s == nil || s.Namespaces == nil {
+		return []internal.Namespace{}, nil
+	}
+
+	namespaces := make([]internal.Namespace, 0, len(s.Namespaces))
+	for _, namespace := range s.Namespaces {
+		namespaces = append(namespaces, namespace)
+	}
+
+	return namespaces, nil
+}

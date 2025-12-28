@@ -88,6 +88,28 @@ func (s *boltStorage) GetAllUsers() ([]internal.User, error) {
 	return users, err
 }
 
+func (s *boltStorage) GetAllNamespaces() ([]internal.Namespace, error) {
+	var namespaces []internal.Namespace
+
+	err := s.DB.View(func(tx *bolt.Tx) error {
+		bucket := tx.Bucket(namespacesBucket)
+		if bucket == nil {
+			return nil
+		}
+
+		return bucket.ForEach(func(k, v []byte) error {
+			var namespace internal.Namespace
+			if err := json.Unmarshal(v, &namespace); err != nil {
+				return err
+			}
+			namespaces = append(namespaces, namespace)
+			return nil
+		})
+	})
+
+	return namespaces, err
+}
+
 func set[T internal.WithID](db *bolt.DB, bucket []byte, v T) error {
 	data, err := json.Marshal(&v)
 

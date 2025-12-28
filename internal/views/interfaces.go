@@ -16,9 +16,11 @@ type LoginData struct {
 }
 
 type AdminData struct {
-	Error   string
-	Message string
-	Users   []internal.User
+	Error      string
+	Message    string
+	User       internal.User
+	Users      []internal.User
+	Namespaces []internal.Namespace
 }
 
 type PanelData struct {

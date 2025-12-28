@@ -15,7 +15,8 @@ func TestAdminPage(t *testing.T) {
 	storage := &memory.Storage{}
 	_ = storage.Init()
 	userService := services.NewUserService(storage)
-	page := NewAdmin(userService)
+	namespaceService := services.NewNamespaceService(storage)
+	page := NewAdmin(userService, namespaceService)
 
 	t.Run("GET admin page unauthenticated", func(t *testing.T) {
 		t.Cleanup(storage.Clear)
@@ -38,7 +39,7 @@ func TestAdminPage(t *testing.T) {
 	t.Run("GET admin page non-admin user", func(t *testing.T) {
 		t.Cleanup(storage.Clear)
 
-		_, _ = userService.Create("user1", "password1", false)
+		_, _ = userService.Create("user1", "password1", false, "")
 		user, err := userService.Login("user1", "password1")
 		if err != nil {
 			t.Fatalf("login failed: %v", err)
@@ -139,7 +140,7 @@ func TestAdminPage(t *testing.T) {
 		adminPass, _ := userService.CreateDefaultAdminUser()
 		adminUser, _ := userService.Login(username, adminPass)
 
-		_, _ = userService.Create("toremove", "password", false)
+		_, _ = userService.Create("toremove", "password", false, "")
 
 		form := url.Values{}
 		form.Set("username", "toremove")

@@ -43,7 +43,7 @@ func validatePassword(password string) error {
 	return nil
 }
 
-func (s *userService) Create(username, password string, isAdmin bool) (*internal.User, error) {
+func (s *userService) Create(username, password string, isAdmin bool, namespace string) (*internal.User, error) {
 	if err := validateUsername(username); err != nil {
 		return nil, err
 	}
@@ -52,10 +52,10 @@ func (s *userService) Create(username, password string, isAdmin bool) (*internal
 		return nil, err
 	}
 
-	return s.create(username, password, isAdmin)
+	return s.create(username, password, isAdmin, namespace)
 }
 
-func (s *userService) create(username, password string, isAdmin bool) (*internal.User, error) {
+func (s *userService) create(username, password string, isAdmin bool, namespace string) (*internal.User, error) {
 	existingUser, err := s.storage.GetUser(username)
 
 	if err != nil {
@@ -82,6 +82,7 @@ func (s *userService) create(username, password string, isAdmin bool) (*internal
 		StreamKey: rand.Text(),
 		IsAdmin:   isAdmin,
 		Password:  userPassword,
+		Namespace: namespace,
 	}
 
 	err = s.storage.SetUser(user)
@@ -92,7 +93,7 @@ func (s *userService) create(username, password string, isAdmin bool) (*internal
 }
 
 func (s *userService) CreateDefaultAdminUser() (string, error) {
-	_, err := s.create(DefaultAdminUsername, DefaultAdminPassword, true)
+	_, err := s.create(DefaultAdminUsername, DefaultAdminPassword, true, "")
 
 	if err == nil {
 		return DefaultAdminPassword, nil

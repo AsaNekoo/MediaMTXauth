@@ -24,7 +24,7 @@ func TestUserService(t *testing.T) {
 	t.Run("create user", func(t *testing.T) {
 		t.Run("valid user creation", func(t *testing.T) {
 			t.Cleanup(storage.Clear)
-			user, err := userService.Create(username, password, false)
+			user, err := userService.Create(username, password, false, "")
 			if err != nil {
 				t.Errorf("Failed to create user: %v", err)
 				return
@@ -38,11 +38,11 @@ func TestUserService(t *testing.T) {
 
 		t.Run("duplicate user creation", func(t *testing.T) {
 			t.Cleanup(storage.Clear)
-			_, err := userService.Create(username, password, false)
+			_, err := userService.Create(username, password, false, "")
 			if err != nil {
 				t.Errorf("Failed to create user: %v", err)
 			}
-			_, err = userService.Create(username, password, false)
+			_, err = userService.Create(username, password, false, "")
 			if err != internal.ErrUserAlreadyExists {
 				t.Errorf("Expected ErrUserAlreadyExists, got %v", err)
 			}
@@ -50,12 +50,12 @@ func TestUserService(t *testing.T) {
 
 		t.Run("validation errors", func(t *testing.T) {
 			t.Cleanup(storage.Clear)
-			_, err := userService.Create("ab", password, false)
+			_, err := userService.Create("ab", password, false, "")
 			if err != ErrShortUsername {
 				t.Errorf("Expected ErrShortUsername, got %v", err)
 			}
 
-			_, err = userService.Create(username, "short", false)
+			_, err = userService.Create(username, "short", false, "")
 			if err != ErrShortPassword {
 				t.Errorf("Expected ErrShortPassword, got %v", err)
 			}
@@ -64,7 +64,7 @@ func TestUserService(t *testing.T) {
 
 	t.Run("get all users", func(t *testing.T) {
 		t.Cleanup(storage.Clear)
-		user, err := userService.Create(username, password, true)
+		user, err := userService.Create(username, password, true, "")
 		if err != nil {
 			t.Errorf("Failed to create user: %v", err)
 			return
@@ -85,7 +85,7 @@ func TestUserService(t *testing.T) {
 			t.Errorf("Expected user: %v, got: %v", user, users[0])
 		}
 
-		user, err = userService.Create("username2", password, true)
+		user, err = userService.Create("username2", password, true, "")
 		if err != nil {
 			t.Errorf("Failed to create user: %v", err)
 			return
@@ -109,7 +109,7 @@ func TestUserService(t *testing.T) {
 
 	t.Run("get user", func(t *testing.T) {
 		t.Cleanup(storage.Clear)
-		createdUser, err := userService.Create(username, password, true)
+		createdUser, err := userService.Create(username, password, true, "")
 
 		if err != nil {
 			t.Errorf("Failed to create user: %v", err)
@@ -131,7 +131,7 @@ func TestUserService(t *testing.T) {
 
 	t.Run("delete user", func(t *testing.T) {
 		t.Cleanup(storage.Clear)
-		_, err := userService.Create(username, password, false)
+		_, err := userService.Create(username, password, false, "")
 
 		err = userService.Delete(username)
 		if err != nil {
@@ -150,7 +150,7 @@ func TestUserService(t *testing.T) {
 		oldPassword := "oldpassword"
 		newPassword := "newpassword"
 
-		user, err := userService.Create(username, oldPassword, false)
+		user, err := userService.Create(username, oldPassword, false, "")
 
 		originalHash := user.Password.Hash
 
@@ -177,7 +177,7 @@ func TestUserService(t *testing.T) {
 
 	t.Run("reset password", func(t *testing.T) {
 		t.Cleanup(storage.Clear)
-		user, err := userService.Create(username, password, false)
+		user, err := userService.Create(username, password, false, "")
 
 		if err != nil {
 			t.Errorf("Failed to create user: %v", err)
@@ -213,7 +213,7 @@ func TestUserService(t *testing.T) {
 
 	t.Run("reset stream key", func(t *testing.T) {
 		t.Cleanup(storage.Clear)
-		user, err := userService.Create(username, password, false)
+		user, err := userService.Create(username, password, false, "")
 
 		if err != nil {
 			t.Errorf("Failed to create user: %v", err)
@@ -248,7 +248,7 @@ func TestUserService(t *testing.T) {
 
 	t.Run("login and logout", func(t *testing.T) {
 		t.Cleanup(storage.Clear)
-		_, _ = userService.Create(username, password, false)
+		_, _ = userService.Create(username, password, false, "")
 
 		t.Run("successful login", func(t *testing.T) {
 			user, err := userService.Login(username, password)
@@ -332,7 +332,7 @@ func TestUserService(t *testing.T) {
 
 	t.Run("verify session", func(t *testing.T) {
 		t.Cleanup(storage.Clear)
-		_, err := userService.Create(username, password, false)
+		_, err := userService.Create(username, password, false, "")
 		if err != nil {
 			t.Errorf("Failed to create user: %v", err)
 			return

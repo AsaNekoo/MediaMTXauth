@@ -52,6 +52,31 @@ func (v *PanelPage) showPanelForm(rw http.ResponseWriter, r *http.Request) {
 	v.renderTemplate(rw, data)
 }
 
+func (v *PanelPage) HandleChangePassword(rw http.ResponseWriter, r *http.Request) {
+	username, authenticated := handlers.RequireAuth(v.Page, rw, r)
+	if !authenticated {
+		return
+	}
+
+	password := r.FormValue("password")
+	if password == "" {
+		user, _ := v.UserService.Get(username)
+		data := views.PanelData{Error: "Password cannot be empty", User: *user}
+		v.renderTemplate(rw, data)
+		return
+	}
+
+	err := v.UserService.ChangePassword(username, password)
+	if err != nil {
+		user, _ := v.UserService.Get(username)
+		data := views.PanelData{Error: err.Error(), User: *user}
+		v.renderTemplate(rw, data)
+		return
+	}
+
+	http.Redirect(rw, r, "/panel", http.StatusSeeOther)
+}
+
 func (v *PanelPage) renderTemplate(rw http.ResponseWriter, data views.PanelData) {
 	rw.Header().Set("Content-Type", "text/html; charset=utf-8")
 	if err := v.Template.Execute(rw, data); err != nil {

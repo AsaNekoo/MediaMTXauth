@@ -16,5 +16,6 @@ type Storage interface {
 
 	SetNamespace(internal.Namespace) error
 	GetNamespace(string) (*internal.Namespace, error)
+	GetAllNamespaces() ([]internal.Namespace, error)
 	DeleteNamespace(string) error
 }

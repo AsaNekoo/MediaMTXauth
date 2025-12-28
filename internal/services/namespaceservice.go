@@ -42,6 +42,10 @@ func (s *namespaceService) Get(namespaceName string) (*internal.Namespace, error
 	return namespace, nil
 }
 
+func (s *namespaceService) GetAllNamespaces() ([]internal.Namespace, error) {
+	return s.storage.GetAllNamespaces()
+}
+
 func (s *namespaceService) Delete(namespaceName string) error {
 	return s.storage.DeleteNamespace(namespaceName)
 }

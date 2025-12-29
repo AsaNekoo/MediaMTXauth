@@ -20,6 +20,18 @@
     <div class="success">{{.Message}}</div>
     {{end}}
 
+    {{if .User.Password.IsGenerated}}
+    <div class="content">
+        <h2>Change Password</h2>
+        <p>You are using a generated password. Please change it to continue.</p>
+        <form method="POST" action="/panel/change_password">
+            <div class="form-group">
+                <input type="password" name="password" required placeholder="New Password">
+            </div>
+            <button type="submit" class="btn">Change Password</button>
+        </form>
+    </div>
+    {{else}}
     <!-- Users List -->
     <div class="users-list">
         <div style="display: flex; justify-content: space-between; align-items: center;">
@@ -80,6 +92,7 @@
         <p>No namespaces found.</p>
         {{end}}
     </div>
+    {{end}}
 </div>
 
 <div id="addUserModal" class="modal">

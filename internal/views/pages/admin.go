@@ -70,7 +70,7 @@ func (v *AdminPage) showAdminForm(rw http.ResponseWriter, r *http.Request) {
 }
 
 func (v *AdminPage) HandleAddUser(rw http.ResponseWriter, r *http.Request) {
-	_, authenticated := handlers.RequireAdminAuth(v.Page, rw, r)
+	usernameAuth, authenticated := handlers.RequireAdminAuth(v.Page, rw, r)
 	if !authenticated {
 		return
 	}
@@ -84,9 +84,10 @@ func (v *AdminPage) HandleAddUser(rw http.ResponseWriter, r *http.Request) {
 
 	_, err := v.UserService.Create(username, password, isAdmin, namespace)
 	if err != nil {
+		currentUser, _ := v.UserService.Get(usernameAuth)
 		users, _ := v.UserService.GetAllUsers()
 		namespaces, _ := v.NamespaceService.GetAllNamespaces()
-		data := views.AdminData{Error: err.Error(), Users: users, Namespaces: namespaces}
+		data := views.AdminData{Error: err.Error(), Users: users, Namespaces: namespaces, User: *currentUser}
 		v.renderTemplate(rw, data)
 		return
 	}
@@ -95,7 +96,7 @@ func (v *AdminPage) HandleAddUser(rw http.ResponseWriter, r *http.Request) {
 }
 
 func (v *AdminPage) HandleRemoveUser(rw http.ResponseWriter, r *http.Request) {
-	_, authenticated := handlers.RequireAdminAuth(v.Page, rw, r)
+	usernameAuth, authenticated := handlers.RequireAdminAuth(v.Page, rw, r)
 	if !authenticated {
 		return
 	}
@@ -104,9 +105,10 @@ func (v *AdminPage) HandleRemoveUser(rw http.ResponseWriter, r *http.Request) {
 
 	err := v.UserService.Delete(username)
 	if err != nil {
+		currentUser, _ := v.UserService.Get(usernameAuth)
 		users, _ := v.UserService.GetAllUsers()
 		namespaces, _ := v.NamespaceService.GetAllNamespaces()
-		data := views.AdminData{Error: err.Error(), Users: users, Namespaces: namespaces}
+		data := views.AdminData{Error: err.Error(), Users: users, Namespaces: namespaces, User: *currentUser}
 		v.renderTemplate(rw, data)
 		return
 	}
@@ -115,7 +117,7 @@ func (v *AdminPage) HandleRemoveUser(rw http.ResponseWriter, r *http.Request) {
 }
 
 func (v *AdminPage) HandleAddNamespace(rw http.ResponseWriter, r *http.Request) {
-	_, authenticated := handlers.RequireAdminAuth(v.Page, rw, r)
+	usernameAuth, authenticated := handlers.RequireAdminAuth(v.Page, rw, r)
 	if !authenticated {
 		return
 	}
@@ -124,9 +126,10 @@ func (v *AdminPage) HandleAddNamespace(rw http.ResponseWriter, r *http.Request) 
 
 	_, err := v.NamespaceService.Create(name)
 	if err != nil {
+		currentUser, _ := v.UserService.Get(usernameAuth)
 		users, _ := v.UserService.GetAllUsers()
 		namespaces, _ := v.NamespaceService.GetAllNamespaces()
-		data := views.AdminData{Error: err.Error(), Users: users, Namespaces: namespaces}
+		data := views.AdminData{Error: err.Error(), Users: users, Namespaces: namespaces, User: *currentUser}
 		v.renderTemplate(rw, data)
 		return
 	}
@@ -135,7 +138,7 @@ func (v *AdminPage) HandleAddNamespace(rw http.ResponseWriter, r *http.Request) 
 }
 
 func (v *AdminPage) HandleRemoveNamespace(rw http.ResponseWriter, r *http.Request) {
-	_, authenticated := handlers.RequireAdminAuth(v.Page, rw, r)
+	usernameAuth, authenticated := handlers.RequireAdminAuth(v.Page, rw, r)
 	if !authenticated {
 		return
 	}
@@ -144,9 +147,10 @@ func (v *AdminPage) HandleRemoveNamespace(rw http.ResponseWriter, r *http.Reques
 
 	err := v.NamespaceService.Delete(name)
 	if err != nil {
+		currentUser, _ := v.UserService.Get(usernameAuth)
 		users, _ := v.UserService.GetAllUsers()
 		namespaces, _ := v.NamespaceService.GetAllNamespaces()
-		data := views.AdminData{Error: err.Error(), Users: users, Namespaces: namespaces}
+		data := views.AdminData{Error: err.Error(), Users: users, Namespaces: namespaces, User: *currentUser}
 		v.renderTemplate(rw, data)
 		return
 	}

@@ -7,6 +7,7 @@ import (
 	_ "embed"
 	"html/template"
 	"net/http"
+	"strings"
 )
 
 //go:embed html/panel.html
@@ -71,6 +72,12 @@ func (v *PanelPage) HandleChangePassword(rw http.ResponseWriter, r *http.Request
 		user, _ := v.UserService.Get(username)
 		data := views.PanelData{Error: err.Error(), User: *user}
 		v.renderTemplate(rw, data)
+		return
+	}
+
+	referer := r.Header.Get("Referer")
+	if referer != "" && strings.Contains(referer, "/admin") {
+		http.Redirect(rw, r, "/admin", http.StatusSeeOther)
 		return
 	}
 

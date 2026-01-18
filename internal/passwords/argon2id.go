@@ -6,21 +6,23 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"strconv"
+
 	"github.com/nothub/hashutils/encoding/b64"
 	"github.com/nothub/hashutils/phc"
 	"golang.org/x/crypto/argon2"
-	"strconv"
 )
 
 var ErrNotEnoughArguments = errors.New("not enough arguments")
 
 func Hash(password string) (string, error) {
+	// Numbers from RFC 9106
 	const (
-		memory      = 19 * 1024
-		iterations  = 2
-		parallelism = 1
-		saltLength  = 16
-		keyLength   = 16
+		time       = 3
+		memory     = 64 * 1024 // 64MiB
+		threads    = 4
+		saltLength = 16 // 128bit
+		keyLength  = 32 // 256bit
 	)
 
 	salt, err := generateSalt(saltLength)
@@ -28,13 +30,13 @@ func Hash(password string) (string, error) {
 		return "", err
 	}
 
-	hash := argon2.IDKey([]byte(password), salt, iterations, memory, parallelism, keyLength)
+	hash := argon2.IDKey([]byte(password), salt, time, memory, threads, keyLength)
 
 	b64Salt := base64.RawStdEncoding.EncodeToString(salt)
 	b64Hash := base64.RawStdEncoding.EncodeToString(hash)
 
 	result := fmt.Sprintf("$argon2id$v=%d$m=%d,t=%d,p=%d$%s$%s",
-		argon2.Version, memory, iterations, parallelism, b64Salt, b64Hash)
+		argon2.Version, memory, time, threads, b64Salt, b64Hash)
 
 	return result, nil
 }

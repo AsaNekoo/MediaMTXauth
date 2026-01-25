@@ -4,6 +4,7 @@ import (
 	"MediaMTXAuth/internal"
 	"MediaMTXAuth/internal/views"
 	"MediaMTXAuth/internal/views/handlers"
+	"crypto/rand"
 	_ "embed"
 	"html/template"
 	"net/http"
@@ -70,6 +71,10 @@ func (v *AdminPage) showAdminForm(rw http.ResponseWriter, r *http.Request) {
 }
 
 func (v *AdminPage) HandleAddUser(rw http.ResponseWriter, r *http.Request) {
+	var err error
+	var currentUser *internal.User
+	var data views.AdminData
+
 	usernameAuth, authenticated := handlers.RequireAdminAuth(v.Page, rw, r)
 	if !authenticated {
 		return
@@ -79,20 +84,41 @@ func (v *AdminPage) HandleAddUser(rw http.ResponseWriter, r *http.Request) {
 	namespace := r.FormValue("namespace")
 	isAdminStr := r.FormValue("isAdmin")
 	isAdmin := isAdminStr == "true"
+	password := rand.Text()
+	currentUser, err = v.UserService.Get(usernameAuth)
 
-	password := "changeme123" //later
-
-	_, err := v.UserService.Create(username, password, isAdmin, namespace)
-	if err != nil {
-		currentUser, _ := v.UserService.Get(usernameAuth)
-		users, _ := v.UserService.GetAllUsers()
-		namespaces, _ := v.NamespaceService.GetAllNamespaces()
-		data := views.AdminData{Error: err.Error(), Users: users, Namespaces: namespaces, User: *currentUser}
-		v.renderTemplate(rw, data)
-		return
+	if currentUser != nil {
+		data.User = *currentUser
 	}
 
-	http.Redirect(rw, r, "/admin", http.StatusSeeOther)
+	if err != nil {
+		goto end
+	}
+
+	data.Namespaces, err = v.NamespaceService.GetAllNamespaces()
+
+	if err != nil {
+		goto end
+	}
+
+	_, err = v.UserService.Create(username, password, isAdmin, namespace)
+
+	if err != nil {
+		goto end
+	}
+
+	data.Users, err = v.UserService.GetAllUsers()
+
+end:
+	if err == nil {
+		data.TempPassword = password
+	} else {
+		data.Error = err.Error()
+	}
+
+	v.renderTemplate(rw, data)
+
+	return
 }
 
 func (v *AdminPage) HandleRemoveUser(rw http.ResponseWriter, r *http.Request) {

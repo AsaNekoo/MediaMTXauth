@@ -21,6 +21,8 @@ type AdminData struct {
 	User       internal.User
 	Users      []internal.User
 	Namespaces []internal.Namespace
+
+	TempPassword string
 }
 
 type PanelData struct {

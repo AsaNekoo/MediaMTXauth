@@ -20,6 +20,15 @@
     <div class="success">{{.Message}}</div>
     {{end}}
 
+    {{if .TempPassword}}
+    <script>history.replaceState({}, "", "/admin");</script>
+    <div class="warning">
+        <strong>Temporary password created</strong><br/>
+        <p>A new temporary password has been generated for a newly created account. For security, it's shown only once &mdash; please share it with user.</p>
+        <p><strong>Password</strong>: <code>{{.TempPassword}}</code></p>
+    </div>
+    {{end}}
+
     {{if .User.Password.IsGenerated}}
     <div class="content">
         <h2>Change Password</h2>

@@ -115,8 +115,9 @@ func TestAdminPage(t *testing.T) {
 
 		page.HandleAddUser(rec, req)
 		resp := rec.Result()
+		body := rec.Body.String()
 
-		if resp.StatusCode != http.StatusSeeOther {
+		if resp.StatusCode != http.StatusOK {
 			t.Fatalf("expected redirect after add, got %d", resp.StatusCode)
 		}
 
@@ -132,6 +133,10 @@ func TestAdminPage(t *testing.T) {
 
 		if !created.IsAdmin {
 			t.Fatalf("expected newuser to be admin")
+		}
+
+		if !strings.Contains(body, "Temporary password created") {
+			t.Errorf("message with temp password was not displayed")
 		}
 	})
 

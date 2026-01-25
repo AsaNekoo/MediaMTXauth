@@ -1,0 +1,7 @@
+root = "."
+tmp_dir = "/tmp/MediaMTXauth.air"
+
+[build]
+cmd = "go build -o /tmp/MediaMTXauth.air/app ."
+entrypoint = ["/tmp/MediaMTXauth.air/app"]
+include_ext = ["go", "css", "html"]

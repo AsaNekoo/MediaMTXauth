@@ -1,7 +1,7 @@
 package main
 
 import (
-	"MediaMTXAuth/internal/api"
+	"MediaMTXAuth/internal/auth"
 	"MediaMTXAuth/internal/services"
 	"MediaMTXAuth/internal/storage/bolt"
 	"MediaMTXAuth/internal/views/pages"
@@ -58,13 +58,13 @@ func main() {
 	loginView := pages.NewLogin(userService)
 	adminView := pages.NewAdmin(userService, namespaceService)
 	panelView := pages.NewPanel(userService)
-	api := api.NewApi(userService, namespaceService)
+	api := auth.New(userService, namespaceService)
 
 	mux := http.NewServeMux()
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("internal/views/pages/html/static"))))
 
 	// API
-	mux.HandleFunc("/api/auth", api.AuthHandler)
+	mux.Handle("/api/auth", api)
 
 	// Views
 	mux.Handle("/login", loginView)

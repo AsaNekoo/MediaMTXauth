@@ -32,9 +32,41 @@
         </form>
     </div>
     {{else}}
-    <div class="content">
-        <p>Your StreamKey: {{.User.Name}}?key={{.User.StreamKey}}</p>
+    <div class="content grid-container">
+        
+        <div class="grid-label">Url:</div>
+        <code id="rtmpUrl" class="grid-code"></code>
+        <button class="grid-btn" onclick="copyToClipboard('rtmpUrl')">copy</button>
+        
+        <div class="grid-label">StreamKey:</div>
+        <code id="streamKey" class="grid-code">{{.User.Name}}?key={{.User.StreamKey}}</code>
+        <button class="grid-btn" onclick="copyToClipboard('streamKey')">copy</button>
+
+        <div class="grid-label">VRchat Url:</div>
+        <code id="vrcUrl" class="grid-code"></code>
+        <button class="grid-btn" onclick="copyToClipboard('vrcUrl')">copy</button>
+
+        <script>
+            document.getElementById("rtmpUrl").innerText = "rtmp://" + window.location.hostname + ":1935" + "/{{.User.Namespace}}";
+            document.getElementById("vrcUrl").innerText = "rtspt://" + window.location.hostname + ":8554" + "/{{.User.Namespace}}/{{.User.Name}}";
+        </script>
     </div>
+
+    <script>
+        function copyToClipboard(elementId) {
+            const text = document.getElementById(elementId).innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = document.querySelector(`button[onclick="copyToClipboard('${elementId}')"]`);
+                const originalText = btn.innerText;
+                btn.innerText = "Copied!";
+                setTimeout(() => {
+                    btn.innerText = originalText;
+                }, 1500);
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+            });
+        }
+    </script>
     {{end}}
 
 </div>

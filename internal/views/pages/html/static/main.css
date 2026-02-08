@@ -105,7 +105,7 @@ body {
     border-radius: 40px;
     padding: 2rem;
     width: 100%;
-    max-width: 400px;
+    max-width: 600px;
     position: relative;
 }
 
@@ -229,5 +229,66 @@ input[type="password"] {
         background-color: #f0f0f0;
         color: transparent;
         text-shadow: 0 0 0 #000;
+    }
+}
+
+/* Three-column grid for aligned panel info */
+.grid-container {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 1rem;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+.grid-label {
+    font-weight: 600;
+    white-space: nowrap;
+    text-align: right;
+    padding-right: 0.5rem;
+}
+
+.grid-code {
+    background: var(--input-bg);
+    padding: 0.75rem 1rem;
+    border-radius: 12px;
+    color: var(--text-color);
+    font-family: monospace;
+    overflow-x: auto;
+    white-space: nowrap;
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.grid-btn {
+    padding: 0.75rem 1.25rem;
+    border-radius: 12px;
+    background: var(--btn-bg);
+    color: var(--btn-color);
+    border: none;
+    cursor: pointer;
+    white-space: nowrap;
+    font-weight: 500;
+    transition: background-color 0.2s;
+}
+
+.grid-btn:hover {
+    background: var(--btn-bg-hover);
+}
+
+@media (max-width: 600px) {
+    .grid-container {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+    .grid-label {
+        text-align: left;
+        margin-top: 10px;
+    }
+    .grid-btn {
+        width: 100%;
+        margin-bottom: 10px;
     }
 }

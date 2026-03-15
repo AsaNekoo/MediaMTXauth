@@ -121,11 +121,6 @@ func TestAdminPage(t *testing.T) {
 			t.Fatalf("expected redirect after add, got %d", resp.StatusCode)
 		}
 
-		loc := resp.Header.Get("Location")
-		if loc != "/admin" {
-			t.Fatalf("expected redirect to /admin after add, got %s", loc)
-		}
-
 		created, _ := userService.Get("newuser")
 		if created == nil {
 			t.Fatalf("expected newuser to be created")

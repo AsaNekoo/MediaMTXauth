@@ -90,7 +90,7 @@ func TestPanelPage(t *testing.T) {
 		if strings.Contains(body, "Change Password") {
 			t.Fatalf("should not show change password form")
 		}
-		if !strings.Contains(body, "Your StreamKey") {
+		if !strings.Contains(body, "StreamKey:") {
 			t.Fatalf("expected stream key, got body: %s", body)
 		}
 	})

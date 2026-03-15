@@ -1,0 +1,9 @@
+logLevel: info
+logDestinations: [stdout]
+logStructured: false
+authMethod: http
+authInternalUsers: []
+authHTTPAddress: http://auth:8080/api/auth
+api: true
+paths:
+  all_others:

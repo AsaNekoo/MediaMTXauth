@@ -6,6 +6,8 @@ ARG GID=1000
 RUN groupadd --system --gid $GID app
 RUN useradd --no-log-init --system --create-home --gid $GID --uid $UID app
 
+RUN mkdir /data && chown app:app /data
+
 USER $UID:$GID
 
 WORKDIR /go/src/app

@@ -1,0 +1,94 @@
+x-environment: &environment
+  DEBUG:
+  LOG_LEVEL:
+
+services:
+  mediamtx:
+    image: bluenviron/mediamtx:latest
+    ports:
+    - name: api
+      target: 9997
+      host_ip: 127.0.0.1
+      app_protocol: http
+      published: "9997"
+    - name: rtsp
+      target: 8554
+      host_ip: 127.0.0.1
+      published: "8554"
+      protocol: tcp
+      mode: host
+    - name: rtp
+      target: 8000
+      host_ip: 127.0.0.1
+      published: "8000"
+      protocol: udp
+      mode: host
+    - name: rtcp
+      target: 8001
+      host_ip: 127.0.0.1
+      published: "8001"
+      protocol: udp
+      mode: host
+    - name: rtmp
+      target: 1935
+      host_ip: 127.0.0.1
+      published: "1935"
+      protocol: tcp
+      mode: host
+    - name: hls
+      target: 8888
+      host_ip: 127.0.0.1
+      published: "8888"
+      protocol: tcp
+      mode: host
+    - name: webrtc
+      target: 8889
+      host_ip: 127.0.0.1
+      published: "8889"
+      protocol: tcp
+      mode: host
+    - name: webrtc-ice
+      target: 8189
+      host_ip: 127.0.0.1
+      published: "8189"
+      protocol: udp
+      mode: host
+    - name: srt
+      target: 8890
+      host_ip: 127.0.0.1
+      published: "8890"
+      protocol: udp
+      mode: host
+    volumes:
+      - ./mediamtx.yml:/mediamtx.yml
+
+  auth:
+    image: ${IMAGE_NAME:-mediamtx-auth}
+    build:
+      context: .
+      target: dev
+    ports:
+      - "127.0.0.1:8080:8080"
+    depends_on:
+      - mediamtx
+    command: ["--db", "/data/auth.db"]
+    volumes:
+      - data:/data
+      - ./:/go/src/app
+    environment:
+      <<: *environment
+
+  test:
+    image: ${TEST_IMAGE_NAME:-mediamtx-auth-test}
+    volumes:
+      - .:/go/src/app
+    build:
+      context: .
+      target: test
+    environment:
+      <<: *environment
+    profiles:
+      - ci
+
+volumes:
+  data:

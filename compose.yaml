@@ -4,7 +4,7 @@ x-environment: &environment
 
 services:
   mediamtx:
-    image: bluenviron/mediamtx:latest
+    image: docker.io/bluenviron/mediamtx:latest
     ports:
     - name: api
       target: 9997
@@ -63,7 +63,7 @@ services:
       - ./mediamtx.yml:/mediamtx.yml
 
   auth:
-    image: ${IMAGE_NAME:-mediamtx-auth}
+    image: ${IMAGE_NAME:-localhost/mediamtx-auth}
     build:
       context: .
       target: dev
@@ -79,7 +79,7 @@ services:
       <<: *environment
 
   test:
-    image: ${TEST_IMAGE_NAME:-mediamtx-auth-test}
+    image: ${TEST_IMAGE_NAME:-localhost/mediamtx-auth-test}
     volumes:
       - .:/go/src/app
     build:
